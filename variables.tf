@@ -35,6 +35,18 @@ variable "manage_site_connectivity" {
   default     = false
 }
 
+variable "manage_template_policies" {
+  description = "Flag to indicate if tenant templates be managed."
+  type        = bool
+  default     = false
+}
+
+variable "managed_template_policies" {
+  description = "List of tenant template names to be managed. By default all tenant templates will be managed."
+  type        = list(string)
+  default     = []
+}
+
 variable "manage_tenants" {
   description = "Flag to indicate if tenants be managed."
   type        = bool
@@ -46,6 +58,7 @@ variable "managed_tenants" {
   type        = list(string)
   default     = []
 }
+
 
 variable "manage_schemas" {
   description = "Flag to indicate if schemas should be managed."

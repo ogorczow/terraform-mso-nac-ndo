@@ -179,3 +179,9 @@ defaults:
           logical_interface_name_suffix: ""
           redirect_policy_name_suffix: ""
           node_type: "firewall"
+    template_policies:
+      dhcp_relay_policies:
+        name_suffix: ""
+        dhcp_relay_providers:
+          type: epg
+          vrf_preference: false

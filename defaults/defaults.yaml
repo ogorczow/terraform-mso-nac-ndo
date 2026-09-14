@@ -300,10 +300,10 @@ defaults:
           start_query_count: 2
         netflow_records:
           name_suffix: ""
-        netflow_exporters:
-          name_suffix: ""
-        netflow_monitors:
-          name_suffix: ""
+#        netflow_exporters:
+#          name_suffix: ""
+#        netflow_monitors:
+#          name_suffix: ""
         igmp_interface_policies:
           name_suffix: ""
           version3_asm: false

@@ -547,7 +547,7 @@ locals {
 }
 
 data "mso_service_device_cluster" "service_device_cluster" {
-  for_each    = { for cluster in local.service_device_cluster_lookups : cluster.key => cluster if !var.manage_tenant_templates }
+  for_each    = { for cluster in local.service_device_cluster_lookups : cluster.key => cluster if(!var.manage_tenant_templates || (var.manage_tenant_templates && !contains(local.managed_service_device_templates, cluster.template_name))) }
   template_id = local.service_device_template_ids[each.value.template_name].id
   name        = each.value.name
 }
@@ -566,7 +566,7 @@ locals {
             for idx, node in try(contract.service_chaining.nodes, []) : {
               name        = "node-${idx + 1}"
               device_type = try(node.device_type, local.defaults.ndo.schemas.templates.contracts.service_chaining.nodes.device_type) == "load_balancer" ? "loadBalancer" : try(node.device_type, local.defaults.ndo.schemas.templates.contracts.service_chaining.nodes.device_type)
-              device_ref  = var.manage_tenant_templates ? mso_service_device_cluster.service_device_cluster["${node.service_device_template}/${node.device}"].uuid : data.mso_service_device_cluster.service_device_cluster["${node.service_device_template}/${node.device}"].uuid
+              device_ref  = !var.manage_tenant_templates || (var.manage_tenant_templates && !contains(local.managed_service_device_templates, node.service_device_template)) ? data.mso_service_device_cluster.service_device_cluster["${node.service_device_template}/${node.device}"].uuid : mso_service_device_cluster.service_device_cluster["${node.service_device_template}/${node.device}"].uuid
               consumer_connector = {
                 interface_name = node.consumer_interface
                 is_redirect    = try(node.consumer_redirect, local.defaults.ndo.schemas.templates.contracts.service_chaining.nodes.consumer_redirect)

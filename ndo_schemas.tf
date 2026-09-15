@@ -530,22 +530,7 @@ resource "mso_rest" "consumer_redirect_policy" {
 
 }
 
-data "mso_service_device_cluster" "service_device_cluster" {
-  for_each    = { for cluster in local.service_device_clusters : "${cluster.template_name}/${cluster.name}" => cluster }
-  template_id = mso_template.service_device_template[each.value.template_name].id
-  name        = each.value.name
-
-  depends_on = [
-    mso_service_device_cluster.service_device_cluster,
-    mso_service_device_cluster_site.service_device_cluster_site,
-  ]
-}
-
 locals {
-  service_device_cluster_uuids = {
-    for key, cluster in data.mso_service_device_cluster.service_device_cluster : key => cluster.uuid
-  }
-
   contracts_service_chaining = flatten([
     for schema in local.schemas : [
       for template in try(schema.templates, []) : [
@@ -559,7 +544,7 @@ locals {
             for idx, node in try(contract.service_chaining.nodes, []) : {
               name        = "node-${idx + 1}"
               device_type = try(node.device_type, local.defaults.ndo.schemas.templates.contracts.service_chaining.nodes.device_type) == "load_balancer" ? "loadBalancer" : try(node.device_type, local.defaults.ndo.schemas.templates.contracts.service_chaining.nodes.device_type)
-              device_ref  = local.service_device_cluster_uuids["${node.service_device_template}/${node.device}${local.defaults.ndo.tenant_templates.service_devices.cluster.name_suffix}"]
+              device_ref  = mso_service_device_cluster.service_device_cluster["service_device/${node.service_device_template}/${node.device}"].uuid
               consumer_connector = {
                 interface_name = node.consumer_interface
                 is_redirect    = try(node.consumer_redirect, local.defaults.ndo.schemas.templates.contracts.service_chaining.nodes.consumer_redirect)

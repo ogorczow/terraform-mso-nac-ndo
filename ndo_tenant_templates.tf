@@ -750,7 +750,7 @@ locals {
   service_device_clusters = flatten([
     for template in local.service_device_templates : [
       for cluster in try(template.cluster, []) : {
-        key           = "service_device/${template.name}/${cluster.name}"
+        key           = "${template.name}/${cluster.name}"
         template_name = template.name
         name          = "${cluster.name}${local.defaults.ndo.tenant_templates.service_devices.cluster.name_suffix}"
         description   = try(cluster.description, null)
@@ -859,7 +859,7 @@ locals {
       for cluster in try(template.cluster, []) : [
         for site_name in try(template.sites, []) : [
           for site in [try([for s in try(cluster.sites, []) : s if s.name == site_name][0], {})] : {
-            key                    = "service_device/${template.name}/${cluster.name}/${site_name}"
+            key                    = "${template.name}/${cluster.name}/${site_name}"
             template_name          = template.name
             cluster_name           = "${cluster.name}${local.defaults.ndo.tenant_templates.service_devices.cluster.name_suffix}"
             site_name              = site_name

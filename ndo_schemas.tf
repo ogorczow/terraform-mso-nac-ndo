@@ -544,7 +544,7 @@ locals {
             for idx, node in try(contract.service_chaining.nodes, []) : {
               name        = "node-${idx + 1}"
               device_type = try(node.device_type, local.defaults.ndo.schemas.templates.contracts.service_chaining.nodes.device_type) == "load_balancer" ? "loadBalancer" : try(node.device_type, local.defaults.ndo.schemas.templates.contracts.service_chaining.nodes.device_type)
-              device_ref  = mso_service_device_cluster.service_device_cluster["service_device/${node.service_device_template}/${node.device}"].uuid
+              device_ref  = mso_service_device_cluster.service_device_cluster["${node.service_device_template}/${node.device}"].uuid
               consumer_connector = {
                 interface_name = node.consumer_interface
                 is_redirect    = try(node.consumer_redirect, local.defaults.ndo.schemas.templates.contracts.service_chaining.nodes.consumer_redirect)
@@ -589,6 +589,8 @@ resource "mso_schema_template_contract_service_chaining" "schema_template_contra
 
   depends_on = [
     mso_schema_template_contract.schema_template_contract,
+    mso_schema_site_anp_epg.schema_site_anp_epg,
+    mso_schema_site_external_epg.schema_site_external_epg,
     mso_service_device_cluster_site.service_device_cluster_site,
   ]
 }

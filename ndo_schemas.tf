@@ -531,6 +531,28 @@ resource "mso_rest" "consumer_redirect_policy" {
 }
 
 locals {
+  service_device_cluster_lookups = distinct(flatten([
+    for schema in local.schemas : [
+      for template in try(schema.templates, []) : [
+        for contract in try(template.contracts, []) : [
+          for node in try(contract.service_chaining.nodes, []) : {
+            key           = "${node.service_device_template}/${node.device}"
+            template_name = node.service_device_template
+            name          = "${node.device}${local.defaults.ndo.tenant_templates.service_devices.cluster.name_suffix}"
+          }
+        ] if try(contract.service_chaining, null) != null
+      ]
+    ]
+  ]))
+}
+
+data "mso_service_device_cluster" "service_device_cluster" {
+  for_each    = { for cluster in local.service_device_cluster_lookups : cluster.key => cluster if !var.manage_tenant_templates }
+  template_id = local.service_device_template_ids[each.value.template_name].id
+  name        = each.value.name
+}
+
+locals {
   contracts_service_chaining = flatten([
     for schema in local.schemas : [
       for template in try(schema.templates, []) : [
@@ -544,7 +566,7 @@ locals {
             for idx, node in try(contract.service_chaining.nodes, []) : {
               name        = "node-${idx + 1}"
               device_type = try(node.device_type, local.defaults.ndo.schemas.templates.contracts.service_chaining.nodes.device_type) == "load_balancer" ? "loadBalancer" : try(node.device_type, local.defaults.ndo.schemas.templates.contracts.service_chaining.nodes.device_type)
-              device_ref  = mso_service_device_cluster.service_device_cluster["${node.service_device_template}/${node.device}"].uuid
+              device_ref  = var.manage_tenant_templates ? mso_service_device_cluster.service_device_cluster["${node.service_device_template}/${node.device}"].uuid : data.mso_service_device_cluster.service_device_cluster["${node.service_device_template}/${node.device}"].uuid
               consumer_connector = {
                 interface_name = node.consumer_interface
                 is_redirect    = try(node.consumer_redirect, local.defaults.ndo.schemas.templates.contracts.service_chaining.nodes.consumer_redirect)

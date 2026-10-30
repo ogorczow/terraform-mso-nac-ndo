@@ -54,11 +54,11 @@ locals {
             ospfAuthKey   = try(interface.ospf.authentication_key, "")
             ospfAuthKeyId = try(interface.ospf.authentication_key_id, local.defaults.ndo.sites.pods.spines.interfaces.ospf.authentication_key_id)
             bgpPeer = {
-              peerAddr          = try(interface.bgp_peer.ip, "")
-              peerAsn           = try(interface.bgp_peer.remote_as, null)
-              password          = try(interface.bgp_peer.password, "")
-              bfdEnabled        = try(interface.bgp_peer.bfd, local.defaults.ndo.sites.pods.spines.interfaces.bgp.bfd)
-              adminStateEnabled = try(interface.bgp_peer.admin_state, local.defaults.ndo.sites.pods.spines.interfaces.bgp.admin_state)
+              peerAddr          = try(interface.bgp.ip, "")
+              peerAsn           = try(interface.bgp.remote_as, null)
+              password          = try(interface.bgp.password, "")
+              bfdEnabled        = try(interface.bgp.bfd, local.defaults.ndo.sites.pods.spines.interfaces.bgp.bfd)
+              adminStateEnabled = try(interface.bgp.admin_state, local.defaults.ndo.sites.pods.spines.interfaces.bgp.admin_state)
             }
           }]
         }]

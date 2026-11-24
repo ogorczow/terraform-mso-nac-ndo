@@ -8,6 +8,7 @@ locals {
   template_ids                     = { for template in try(jsondecode(data.mso_rest.templates.content), []) : template.templateName => { "id" : template.templateId } if template.templateType == "tenantPolicy" }
   service_device_template_ids      = { for template in try(jsondecode(data.mso_rest.templates.content), []) : template.templateName => { "id" : template.templateId } if template.templateType == "serviceDevice" }
   managed_service_device_templates = [for template in local.service_device_templates : template.name]
+  managed_tenant_policy_templates  = [for template in local.tenant_templates : template.name]
 }
 
 data "mso_rest" "templates" {

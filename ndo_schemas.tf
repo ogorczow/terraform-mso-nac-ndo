@@ -882,7 +882,6 @@ locals {
             bd_name                  = "${bd.name}${local.defaults.ndo.schemas.templates.bridge_domains.name_suffix}"
             relay_policy_name        = "${pol.dhcp_relay_policy}${local.defaults.ndo.tenant_templates.tenant_policies.dhcp_relay_policies.name_suffix}"
             tenant_policies_template = pol.tenant_policies_template
-            template_managed         = contains(local.managed_tenant_policy_templates, pol.tenant_policies_template)
             relay_policy_key         = "${pol.tenant_policies_template}/${pol.dhcp_relay_policy}${local.defaults.ndo.tenant_templates.tenant_policies.dhcp_relay_policies.name_suffix}"
             option_policy_name       = try("${pol.dhcp_option_policy}${local.defaults.ndo.tenant_templates.tenant_policies.dhcp_option_policies.name_suffix}", null)
             option_policy_key        = try("${pol.tenant_policies_template}/${pol.dhcp_option_policy}${local.defaults.ndo.tenant_templates.tenant_policies.dhcp_option_policies.name_suffix}", null)
@@ -896,14 +895,14 @@ locals {
       key           = pol.relay_policy_key
       template_name = pol.tenant_policies_template
       name          = pol.relay_policy_name
-    } if !pol.template_managed
+    } if !contains(local.managed_tenant_policy_templates, pol.tenant_policies_template)
   ])
   dhcp_option_policy_lookups = distinct([
     for pol in local.bridge_domains_dhcp_policies : {
       key           = pol.option_policy_key
       template_name = pol.tenant_policies_template
       name          = pol.option_policy_name
-    } if pol.option_policy_name != null && !pol.template_managed
+    } if pol.option_policy_name != null && !contains(local.managed_tenant_policy_templates, pol.tenant_policies_template)
   ])
 }
 
@@ -924,8 +923,8 @@ resource "mso_schema_template_bd_dhcp_policy" "schema_template_bd_dhcp_policy" {
   schema_id               = each.value.schema_id
   template_name           = each.value.template_name
   bd_name                 = each.value.bd_name
-  uuid                    = each.value.template_managed ? mso_tenant_policies_dhcp_relay_policy.tenant_policies_dhcp_relay_policy[each.value.relay_policy_name].uuid : data.mso_tenant_policies_dhcp_relay_policy.dhcp_relay_policy[each.value.relay_policy_key].uuid
-  dhcp_option_policy_uuid = each.value.option_policy_name == null ? null : (each.value.template_managed ? mso_tenant_policies_dhcp_option_policy.tenant_policies_dhcp_option_policy[each.value.option_policy_name].uuid : data.mso_tenant_policies_dhcp_option_policy.dhcp_option_policy[each.value.option_policy_key].uuid)
+  uuid                    = contains(local.managed_tenant_policy_templates, each.value.tenant_policies_template) ? mso_tenant_policies_dhcp_relay_policy.tenant_policies_dhcp_relay_policy[each.value.relay_policy_name].uuid : data.mso_tenant_policies_dhcp_relay_policy.dhcp_relay_policy[each.value.relay_policy_key].uuid
+  dhcp_option_policy_uuid = each.value.option_policy_name == null ? null : (contains(local.managed_tenant_policy_templates, each.value.tenant_policies_template) ? mso_tenant_policies_dhcp_option_policy.tenant_policies_dhcp_option_policy[each.value.option_policy_name].uuid : data.mso_tenant_policies_dhcp_option_policy.dhcp_option_policy[each.value.option_policy_key].uuid)
 
   depends_on = [
     mso_schema_template_bd.schema_template_bd,

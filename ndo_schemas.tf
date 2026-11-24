@@ -870,7 +870,6 @@ resource "mso_schema_template_bd" "schema_template_bd" {
 }
 
 locals {
-  managed_tenant_policy_templates = [for template in local.tenant_templates : template.name]
   bridge_domains_dhcp_policies = flatten([
     for schema in local.schemas : [
       for template in try(schema.templates, []) : [

@@ -836,14 +836,6 @@ locals {
           unknown_multicast_flooding      = local.unknown_multicast_map[try(bd.unknown_ipv4_multicast, local.defaults.ndo.schemas.templates.bridge_domains.unknown_ipv4_multicast)]
           ipv6_unknown_multicast_flooding = local.unknown_multicast_map[try(bd.unknown_ipv6_multicast, local.defaults.ndo.schemas.templates.bridge_domains.unknown_ipv6_multicast)]
           ep_move_detection_mode          = local.ndo_version >= 4.2 ? try(bd.ep_move_detection_mode, local.defaults.ndo.schemas.templates.bridge_domains.ep_move_detection_mode) : null
-
-          dhcp_policies = [
-            for pol in try(bd.dhcp_policies, []) : {
-              key                     = "${bd.name}/${pol.dhcp_relay_policy}"
-              name                    = "${pol.dhcp_relay_policy}${local.defaults.ndo.tenant_templates.tenant_policies.dhcp_relay_policies.name_suffix}"
-              dhcp_option_policy_name = try("${pol.dhcp_option_policy}${local.defaults.ndo.tenant_templates.tenant_policies.dhcp_option_policies.name_suffix}", null)
-            }
-          ]
         }
       ]
     ]
@@ -872,15 +864,73 @@ resource "mso_schema_template_bd" "schema_template_bd" {
   multi_destination_flooding      = each.value.multi_destination_flooding
   unknown_multicast_flooding      = each.value.unknown_multicast_flooding
   ep_move_detection_mode          = each.value.ep_move_detection_mode
-  dynamic "dhcp_policies" {
-    for_each = { for pol in try(each.value.dhcp_policies, []) : pol.key => pol }
-    content {
-      name                    = dhcp_policies.value.name
-      dhcp_option_policy_name = dhcp_policies.value.dhcp_option_policy_name
-    }
-  }
   depends_on = [
     mso_schema_template_vrf.schema_template_vrf
+  ]
+}
+
+locals {
+  managed_tenant_policy_templates = [for template in local.tenant_templates : template.name]
+  bridge_domains_dhcp_policies = flatten([
+    for schema in local.schemas : [
+      for template in try(schema.templates, []) : [
+        for bd in try(template.bridge_domains, []) : [
+          for pol in try(bd.dhcp_policies, []) : {
+            key                      = "${schema.name}/${template.name}/${bd.name}/${pol.dhcp_relay_policy}"
+            schema_id                = mso_schema.schema[schema.name].id
+            template_name            = template.name
+            bd_name                  = "${bd.name}${local.defaults.ndo.schemas.templates.bridge_domains.name_suffix}"
+            relay_policy_name        = "${pol.dhcp_relay_policy}${local.defaults.ndo.tenant_templates.tenant_policies.dhcp_relay_policies.name_suffix}"
+            tenant_policies_template = pol.tenant_policies_template
+            template_managed         = contains(local.managed_tenant_policy_templates, pol.tenant_policies_template)
+            relay_policy_key         = "${pol.tenant_policies_template}/${pol.dhcp_relay_policy}${local.defaults.ndo.tenant_templates.tenant_policies.dhcp_relay_policies.name_suffix}"
+            option_policy_name       = try("${pol.dhcp_option_policy}${local.defaults.ndo.tenant_templates.tenant_policies.dhcp_option_policies.name_suffix}", null)
+            option_policy_key        = try("${pol.tenant_policies_template}/${pol.dhcp_option_policy}${local.defaults.ndo.tenant_templates.tenant_policies.dhcp_option_policies.name_suffix}", null)
+          }
+        ]
+      ]
+    ]
+  ])
+  dhcp_relay_policy_lookups = distinct([
+    for pol in local.bridge_domains_dhcp_policies : {
+      key           = pol.relay_policy_key
+      template_name = pol.tenant_policies_template
+      name          = pol.relay_policy_name
+    } if !pol.template_managed
+  ])
+  dhcp_option_policy_lookups = distinct([
+    for pol in local.bridge_domains_dhcp_policies : {
+      key           = pol.option_policy_key
+      template_name = pol.tenant_policies_template
+      name          = pol.option_policy_name
+    } if pol.option_policy_name != null && !pol.template_managed
+  ])
+}
+
+data "mso_tenant_policies_dhcp_relay_policy" "dhcp_relay_policy" {
+  for_each    = { for pol in local.dhcp_relay_policy_lookups : pol.key => pol }
+  template_id = local.template_ids[each.value.template_name].id
+  name        = each.value.name
+}
+
+data "mso_tenant_policies_dhcp_option_policy" "dhcp_option_policy" {
+  for_each    = { for pol in local.dhcp_option_policy_lookups : pol.key => pol }
+  template_id = local.template_ids[each.value.template_name].id
+  name        = each.value.name
+}
+
+resource "mso_schema_template_bd_dhcp_policy" "schema_template_bd_dhcp_policy" {
+  for_each                = { for pol in local.bridge_domains_dhcp_policies : pol.key => pol }
+  schema_id               = each.value.schema_id
+  template_name           = each.value.template_name
+  bd_name                 = each.value.bd_name
+  uuid                    = each.value.template_managed ? mso_tenant_policies_dhcp_relay_policy.tenant_policies_dhcp_relay_policy[each.value.relay_policy_name].uuid : data.mso_tenant_policies_dhcp_relay_policy.dhcp_relay_policy[each.value.relay_policy_key].uuid
+  dhcp_option_policy_uuid = each.value.option_policy_name == null ? null : (each.value.template_managed ? mso_tenant_policies_dhcp_option_policy.tenant_policies_dhcp_option_policy[each.value.option_policy_name].uuid : data.mso_tenant_policies_dhcp_option_policy.dhcp_option_policy[each.value.option_policy_key].uuid)
+
+  depends_on = [
+    mso_schema_template_bd.schema_template_bd,
+    mso_tenant_policies_dhcp_relay_policy.tenant_policies_dhcp_relay_policy,
+    mso_tenant_policies_dhcp_option_policy.tenant_policies_dhcp_option_policy,
   ]
 }
 

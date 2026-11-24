@@ -35,6 +35,7 @@ resource "mso_schema_template_deploy_ndo" "template" {
     mso_schema_template_vrf_contract.schema_template_vrf_contract,
     mso_schema_site_vrf_region.schema_site_vrf_region,
     mso_schema_template_bd.schema_template_bd,
+    mso_schema_template_bd_dhcp_policy.schema_template_bd_dhcp_policy,
     mso_schema_site_bd.schema_site_bd,
     mso_schema_template_bd_subnet.schema_template_bd_subnet,
     mso_schema_site_bd_subnet.schema_site_bd_subnet,

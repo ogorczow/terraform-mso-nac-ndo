@@ -141,7 +141,7 @@ locals {
 }
 
 resource "mso_tenant_policies_dhcp_relay_policy" "tenant_policies_dhcp_relay_policy" {
-  for_each    = { for policy in local.dhcp_relay_policies : policy.name => policy }
+  for_each    = { for policy in local.dhcp_relay_policies : "${policy.name}${local.defaults.ndo.tenant_templates.tenant_policies.dhcp_relay_policies.name_suffix}" => policy }
   name        = "${each.value.name}${local.defaults.ndo.tenant_templates.tenant_policies.dhcp_relay_policies.name_suffix}"
   template_id = mso_template.tenant_template[each.value.template_name].id
   description = each.value.description

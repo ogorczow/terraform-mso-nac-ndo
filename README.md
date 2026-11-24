@@ -184,6 +184,7 @@ $ export TF_CLI_ARGS_apply="-parallelism=1"
 | [mso_schema_template_anp_epg_contract.schema_template_anp_epg_contract](https://registry.terraform.io/providers/CiscoDevNet/mso/latest/docs/resources/schema_template_anp_epg_contract) | resource |
 | [mso_schema_template_anp_epg_subnet.schema_template_anp_epg_subnet](https://registry.terraform.io/providers/CiscoDevNet/mso/latest/docs/resources/schema_template_anp_epg_subnet) | resource |
 | [mso_schema_template_bd.schema_template_bd](https://registry.terraform.io/providers/CiscoDevNet/mso/latest/docs/resources/schema_template_bd) | resource |
+| [mso_schema_template_bd_dhcp_policy.schema_template_bd_dhcp_policy](https://registry.terraform.io/providers/CiscoDevNet/mso/latest/docs/resources/schema_template_bd_dhcp_policy) | resource |
 | [mso_schema_template_bd_subnet.schema_template_bd_subnet](https://registry.terraform.io/providers/CiscoDevNet/mso/latest/docs/resources/schema_template_bd_subnet) | resource |
 | [mso_schema_template_contract.schema_template_contract](https://registry.terraform.io/providers/CiscoDevNet/mso/latest/docs/resources/schema_template_contract) | resource |
 | [mso_schema_template_contract_service_chaining.schema_template_contract_service_chaining](https://registry.terraform.io/providers/CiscoDevNet/mso/latest/docs/resources/schema_template_contract_service_chaining) | resource |
@@ -242,6 +243,8 @@ $ export TF_CLI_ARGS_apply="-parallelism=1"
 | [mso_site.tenant_templates_site](https://registry.terraform.io/providers/CiscoDevNet/mso/latest/docs/data-sources/site) | data source |
 | [mso_tenant.template_tenant](https://registry.terraform.io/providers/CiscoDevNet/mso/latest/docs/data-sources/tenant) | data source |
 | [mso_tenant.tenant_templates_tenant](https://registry.terraform.io/providers/CiscoDevNet/mso/latest/docs/data-sources/tenant) | data source |
+| [mso_tenant_policies_dhcp_option_policy.dhcp_option_policy](https://registry.terraform.io/providers/CiscoDevNet/mso/latest/docs/data-sources/tenant_policies_dhcp_option_policy) | data source |
+| [mso_tenant_policies_dhcp_relay_policy.dhcp_relay_policy](https://registry.terraform.io/providers/CiscoDevNet/mso/latest/docs/data-sources/tenant_policies_dhcp_relay_policy) | data source |
 | [mso_user.tenant_user](https://registry.terraform.io/providers/CiscoDevNet/mso/latest/docs/data-sources/user) | data source |
 
 ## Modules

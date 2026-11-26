@@ -906,13 +906,13 @@ locals {
 }
 
 data "mso_tenant_policies_dhcp_relay_policy" "dhcp_relay_policy" {
-  for_each    = { for pol in local.dhcp_relay_policy_lookups : pol.key => pol }
+  for_each    = { for pol in local.dhcp_relay_policy_lookups : pol.key => pol if(!var.manage_tenant_templates || (var.manage_tenant_templates && !contains(local.managed_tenant_policy_templates, pol.template_name))) }
   template_id = local.template_ids[each.value.template_name].id
   name        = each.value.name
 }
 
 data "mso_tenant_policies_dhcp_option_policy" "dhcp_option_policy" {
-  for_each    = { for pol in local.dhcp_option_policy_lookups : pol.key => pol }
+  for_each    = { for pol in local.dhcp_option_policy_lookups : pol.key => pol if(!var.manage_tenant_templates || (var.manage_tenant_templates && !contains(local.managed_tenant_policy_templates, pol.template_name))) }
   template_id = local.template_ids[each.value.template_name].id
   name        = each.value.name
 }
